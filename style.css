@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Base & Reset
+   Base & Reset & Luxury Variables
    ========================================================================== */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -8,124 +8,643 @@
 }
 
 :root {
-  --bg-color: #0d0f12;
-  --bg-radial: radial-gradient(circle at 50% 40%, #171b22 0%, #0d0f12 70%);
-  --text-primary: #f3f4f6;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  --font-serif: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", serif;
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
-  --ease-out-quint: cubic-bezier(0.16, 1, 0.3, 1);
+  --bg-deep: #07080a;
+  --bg-obsidian: #0d0f14;
+  --gold-highlight: #fff3c4;
+  --gold-primary: #f0c05a;
+  --gold-mid: #d4af37;
+  --gold-dark: #aa771c;
+  --gold-shadow: #52390c;
+  
+  --gold-gradient: linear-gradient(
+    135deg,
+    #ffe89c 0%,
+    #d4af37 35%,
+    #aa771c 65%,
+    #fff3c4 85%,
+    #b38528 100%
+  );
+
+  --gold-gradient-shine: linear-gradient(
+    90deg,
+    #aa771c 0%,
+    #f3d376 25%,
+    #ffffff 50%,
+    #f3d376 75%,
+    #aa771c 100%
+  );
+
+  --text-main: #f9f9fb;
+  --text-sub: #c5cbd8;
+  --text-gold: #e5c07b;
+  --text-muted: #798296;
+
+  --font-royal: "Cinzel", "Noto Serif JP", serif;
+  --font-serif: "Noto Serif JP", serif;
+  --font-sans: "Montserrat", -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --ease-cinematic: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 html, body {
   width: 100%;
   height: 100%;
-}
-
-body {
-  background-color: var(--bg-color);
-  background-image: var(--bg-radial);
-  color: var(--text-primary);
+  overflow-x: hidden;
+  background-color: var(--bg-deep);
+  color: var(--text-main);
   font-family: var(--font-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow: hidden;
 }
 
 /* ==========================================================================
-   Layout & Container
+   シネマティック・カーテン (映画のような入場演出)
+   ========================================================================== */
+.cinema-curtain {
+  position: fixed;
+  left: 0;
+  width: 100%;
+  height: 50vh;
+  background: #000;
+  z-index: 1000;
+  pointer-events: none;
+  transition: transform 1.6s var(--ease-cinematic);
+}
+
+.cinema-top {
+  top: 0;
+  transform: translateY(0);
+}
+
+.cinema-bottom {
+  bottom: 0;
+  transform: translateY(0);
+}
+
+body.loaded .cinema-top {
+  transform: translateY(-100%);
+}
+
+body.loaded .cinema-bottom {
+  transform: translateY(100%);
+}
+
+/* ==========================================================================
+   Canvas Elements (背景パーティクル & 紙吹雪)
+   ========================================================================== */
+.bg-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.confetti-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 500;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   サウンドコントロールボタン (Web Audio API)
+   ========================================================================== */
+.sound-control-wrapper {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 100;
+}
+
+.sound-btn {
+  background: rgba(13, 15, 20, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 9999px;
+  padding: 0.6rem 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  color: var(--gold-primary);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 0 12px rgba(212, 175, 55, 0.1);
+}
+
+.sound-btn:hover {
+  background: rgba(26, 29, 38, 0.9);
+  border-color: var(--gold-highlight);
+  box-shadow: 0 0 20px rgba(240, 192, 90, 0.4);
+  transform: translateY(-1px);
+}
+
+.sound-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2.5px;
+  height: 14px;
+}
+
+.sound-bars .bar {
+  width: 2.5px;
+  height: 4px;
+  background-color: var(--gold-primary);
+  border-radius: 1px;
+  transition: height 0.2s ease;
+}
+
+.sound-btn.is-active .sound-bars .bar {
+  animation: equalizer 1.1s ease-in-out infinite alternate;
+}
+
+.sound-btn.is-active .sound-bars .bar:nth-child(1) { animation-delay: 0.1s; }
+.sound-btn.is-active .sound-bars .bar:nth-child(2) { animation-delay: 0.3s; }
+.sound-btn.is-active .sound-bars .bar:nth-child(3) { animation-delay: 0.2s; }
+.sound-btn.is-active .sound-bars .bar:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes equalizer {
+  0% { height: 3px; }
+  100% { height: 14px; }
+}
+
+/* ==========================================================================
+   レイアウト & 3Dカード
    ========================================================================== */
 .container {
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  min-height: 100dvh;
-  padding: clamp(1.5rem, 5vw, 4rem);
-  text-align: center;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+  position: relative;
+  z-index: 10;
 }
 
-.message-wrapper {
-  max-width: 680px;
+.card-perspective {
+  perspective: 1400px;
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(1rem, 2.5vw, 1.75rem);
+  max-width: 780px;
+}
+
+.luxury-card {
+  position: relative;
+  background: radial-gradient(
+    circle at 50% 20%,
+    rgba(25, 28, 38, 0.78) 0%,
+    rgba(10, 12, 16, 0.92) 80%
+  );
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-radius: 24px;
+  padding: clamp(2rem, 5vw, 4rem) clamp(1.5rem, 4vw, 3.5rem);
+  text-align: center;
+  box-shadow:
+    0 25px 60px -15px rgba(0, 0, 0, 0.9),
+    0 0 45px rgba(212, 175, 55, 0.15),
+    inset 0 0 1px 1px rgba(255, 255, 255, 0.12),
+    inset 0 1px 20px rgba(240, 192, 90, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.38);
+  transform-style: preserve-3d;
+  transition: transform 0.15s ease-out, box-shadow 0.4s ease;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(35px) scale(0.97);
+}
+
+body.loaded .luxury-card {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 1.4s var(--ease-cinematic) 0.3s,
+              transform 1.4s var(--ease-cinematic) 0.3s,
+              box-shadow 0.4s ease;
+}
+
+/* カード表面の反射ハイライト（グレア） */
+.card-glare {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 24px;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(255, 240, 180, 0.05) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  mix-blend-mode: overlay;
+  z-index: 2;
 }
 
 /* ==========================================================================
-   Typography
+   ロイヤル・クレスト（紋章）
+   ========================================================================== */
+.crest-wrapper {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateZ(40px);
+}
+
+.royal-crest {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 14px rgba(240, 192, 90, 0.65));
+  animation: crestPulse 4s ease-in-out infinite alternate;
+}
+
+.crest-glow {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(240, 192, 90, 0.4) 0%, transparent 70%);
+  filter: blur(10px);
+  z-index: -1;
+  animation: auraGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes crestPulse {
+  0% { transform: scale(0.98); }
+  100% { transform: scale(1.04); }
+}
+
+@keyframes auraGlow {
+  0% { opacity: 0.4; transform: scale(0.9); }
+  100% { opacity: 0.9; transform: scale(1.3); }
+}
+
+/* ==========================================================================
+   タイポグラフィ
    ========================================================================== */
 .tagline {
-  font-family: var(--font-sans);
-  font-size: clamp(0.75rem, 1.2vw, 0.875rem);
-  font-weight: 500;
-  letter-spacing: 0.35em;
-  color: var(--text-muted);
+  font-family: var(--font-royal);
+  font-size: clamp(0.7rem, 1.4vw, 0.85rem);
+  font-weight: 600;
+  letter-spacing: 0.4em;
+  color: var(--gold-primary);
   text-transform: uppercase;
-  padding-left: 0.35em; /* letter-spacingによる右寄りの視覚補正 */
+  margin-bottom: 1.2rem;
+  text-shadow: 0 0 12px rgba(212, 175, 55, 0.5);
+  transform: translateZ(30px);
 }
 
 .main-title {
   font-family: var(--font-serif);
-  font-size: clamp(1.75rem, 5vw, 3rem);
-  font-weight: 300;
-  letter-spacing: 0.08em;
-  line-height: 1.4;
-  color: var(--text-primary);
+  font-size: clamp(1.85rem, 5vw, 3.4rem);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1.35;
+  margin-bottom: 1.5rem;
+  transform: translateZ(50px);
   word-break: keep-all;
-  overflow-wrap: break-word;
+}
+
+/* 24Kゴールド・シマーテキスト */
+.gold-shimmer {
+  background: var(--gold-gradient-shine);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: goldShine 4.5s ease-in-out infinite;
+  display: inline-block;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.8));
+}
+
+@keyframes goldShine {
+  0% { background-position: 0% center; }
+  50% { background-position: 100% center; }
+  100% { background-position: 0% center; }
+}
+
+/* 豪華な装飾ライン */
+.luxury-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  margin: 0 auto 1.8rem;
+  max-width: 320px;
+  transform: translateZ(25px);
+}
+
+.luxury-divider .line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.7), transparent);
+}
+
+.luxury-divider .diamond {
+  color: var(--gold-primary);
+  font-size: 0.75rem;
+  filter: drop-shadow(0 0 6px rgba(240, 192, 90, 0.7));
 }
 
 .sub-message {
   font-family: var(--font-sans);
   font-size: clamp(0.875rem, 1.8vw, 1.05rem);
-  font-weight: 300;
-  line-height: 1.8;
-  letter-spacing: 0.05em;
-  color: var(--text-secondary);
-  max-width: 480px;
+  font-weight: 400;
+  line-height: 1.9;
+  letter-spacing: 0.08em;
+  color: var(--text-sub);
+  max-width: 580px;
+  margin: 0 auto 2.5rem;
+  transform: translateZ(35px);
 }
 
 /* ==========================================================================
-   Animation (Fade-in with smooth easing)
+   ステータスグリッド (無駄に豪華なステータスメーター)
    ========================================================================== */
-.message-wrapper > * {
-  opacity: 0;
-  transform: translateY(18px);
-  transition: opacity 1.2s var(--ease-out-quint),
-              transform 1.2s var(--ease-out-quint);
-  will-change: opacity, transform;
+.metrics-grid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 12, 16, 0.65);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  border-radius: 16px;
+  padding: 1.1rem 1.8rem;
+  margin: 0 auto 2.5rem;
+  max-width: 580px;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.4);
+  transform: translateZ(30px);
 }
 
-/* アニメーションの発火（JavaScriptで.is-visibleが付与されたとき） */
-.message-wrapper.is-visible .tagline {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: 0.15s;
+.metric-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.message-wrapper.is-visible .main-title {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: 0.35s;
+.metric-label {
+  font-family: var(--font-sans);
+  font-size: clamp(0.6rem, 1.1vw, 0.7rem);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  text-transform: uppercase;
 }
 
-.message-wrapper.is-visible .sub-message {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: 0.55s;
+.metric-val {
+  font-family: var(--font-royal);
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  font-weight: 700;
+  color: var(--gold-highlight);
+  text-shadow: 0 0 10px rgba(240, 192, 90, 0.5);
+}
+
+.metric-val.infinity-val {
+  font-size: clamp(1.4rem, 2.8vw, 2.1rem);
+  line-height: 1;
+}
+
+.metric-unit {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--gold-mid);
+  margin-left: 2px;
+}
+
+.metric-separator {
+  width: 1px;
+  height: 38px;
+  background: rgba(212, 175, 55, 0.25);
+  margin: 0 1.2rem;
 }
 
 /* ==========================================================================
-   Accessibility: prefers-reduced-motion
+   アクションボタン (Action Buttons)
+   ========================================================================== */
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  margin-bottom: 2.2rem;
+  transform: translateZ(45px);
+}
+
+.btn {
+  position: relative;
+  padding: 0.95rem 1.8rem;
+  border-radius: 9999px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  transition: all 0.35s var(--ease-elastic);
+  outline: none;
+  overflow: hidden;
+}
+
+/* 24K ゴールドボタン */
+.btn-gold {
+  background: var(--gold-gradient);
+  color: #1a1305;
+  border: none;
+  box-shadow:
+    0 8px 24px rgba(212, 175, 55, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.4),
+    inset 0 1px 1px rgba(255, 255, 255, 0.6);
+}
+
+.btn-gold:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow:
+    0 12px 35px rgba(240, 192, 90, 0.6),
+    0 3px 10px rgba(0, 0, 0, 0.5),
+    inset 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.btn-gold:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-shine {
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 50%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.5),
+    transparent
+  );
+  transform: rotate(25deg);
+  animation: btnSweep 3.5s infinite;
+  pointer-events: none;
+}
+
+@keyframes btnSweep {
+  0% { left: -60%; }
+  30%, 100% { left: 140%; }
+}
+
+/* アウトラインゴールドボタン */
+.btn-outline-gold {
+  background: rgba(13, 15, 20, 0.5);
+  color: var(--gold-highlight);
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.btn-outline-gold:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: var(--gold-highlight);
+  color: #fff;
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.35);
+}
+
+.btn-outline-gold:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ==========================================================================
+   カードフッター・認証スタンプ
+   ========================================================================== */
+.card-footer-stamp {
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  color: var(--gold-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  opacity: 0.8;
+  transform: translateZ(20px);
+}
+
+/* ==========================================================================
+   聖域の扉（フラッシュオーバーレイ）
+   ========================================================================== */
+.sanctuary-flash {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #1b160a 0%, #07080a 100%);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
+}
+
+.sanctuary-flash.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.flash-content {
+  max-width: 600px;
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.flash-crest {
+  font-size: 3.5rem;
+  color: var(--gold-primary);
+  filter: drop-shadow(0 0 25px rgba(240, 192, 90, 0.8));
+  animation: crestPulse 2s infinite alternate;
+}
+
+.flash-content h2 {
+  font-family: var(--font-royal);
+  font-size: clamp(1.5rem, 3.5vw, 2.4rem);
+  letter-spacing: 0.2em;
+  color: var(--gold-highlight);
+}
+
+.flash-content p {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  color: var(--text-sub);
+}
+
+/* ==========================================================================
+   レスポンシブ対応
+   ========================================================================== */
+@media (max-width: 640px) {
+  .metrics-grid {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.2rem;
+  }
+
+  .metric-separator {
+    width: 80%;
+    height: 1px;
+    margin: 0.3rem 0;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .sound-control-wrapper {
+    top: 1rem;
+    right: 1rem;
+  }
+}
+
+/* ==========================================================================
+   アクセシビリティ: prefers-reduced-motion
    ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
-  .message-wrapper > * {
-    opacity: 1 !important;
-    transform: none !important;
+  .cinema-curtain {
+    display: none !important;
+  }
+
+  .luxury-card,
+  .royal-crest,
+  .crest-glow,
+  .gold-shimmer,
+  .btn-shine,
+  .sound-bars .bar {
+    animation: none !important;
     transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
   }
 }
